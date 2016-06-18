@@ -36,6 +36,7 @@ var runSearch = function() {
     })
 }
 
+//all data for songs sung by a specific artist
 var artistSearch = function () {
     inquirer.prompt({
         name: "artist",
@@ -51,6 +52,7 @@ var artistSearch = function () {
     })
 }
 
+//all artists who appear within the top 5000 more than once
 var multiSearch = function () {
     connection.query("SELECT artist FROM `top5000` GROUP BY artist HAVING count(*)>1", function (err, res){
         for (var i = 0; i < res.length; i++) {
@@ -58,3 +60,46 @@ var multiSearch = function () {
         }
     })
 }
+
+//all data contained within a specific range
+var rangeSearch = function () {
+    inquirer.prompt([
+        {
+            name: "start",
+            type: "input",
+            message: "Enter starting position: ",
+            validate: function (value) {
+                if (isNan(value) == false){
+                    return true;
+                } else {
+                    return false;
+                }   
+            }   
+        }
+    ]).then(function(answer){
+        connection.query("SELECT position, song, artist, year FROM `top5000` WHERE position BETWEEN " + answer.start + "AND" + answer.end, function (err, res){
+            for (var i = 0; i < res.length; i++) {
+                console.log("Position: " + res[i].position + " || Song: " + res[i].song + " || Artist: " + res[i].artist + " || Year: " + res[i].year);
+            }
+            runSearch();
+        })
+    })
+}
+
+//searches for a specific song in the top 5000 and returns the data for it
+
+var songSearch = function() {
+    inquirer.prompt({
+        name: "song",
+        type: "input",
+        message: "What song would you like to look for?"
+    }).then(function(answer) {
+        console.log(answer.song)
+        connection.query('SELECT * FROM top5000 WHERE song = "' + answer.song + '"', function(err, res) {
+            console.log("Position: " + res[0].position + " || Song: " + res[0].song + " || Artist: " + res[0].artist + " || Year: " + res[0].year);
+            runSearch();
+        })
+    })
+}
+
+
